@@ -1,3 +1,5 @@
+line-length = 112
+
 [lint]
 # 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
 select = ["E4", # imports
@@ -5,7 +7,7 @@ select = ["E4", # imports
           "E9", # io error
           "F",  # PyFlakes
           "B",  # flake8-bugbear 
-          "ANN" # flake8-annotations
+          "ANN", # flake8-annotations
           ]
 
 # 2. Avoid enforcing line-length violations (`E501`)

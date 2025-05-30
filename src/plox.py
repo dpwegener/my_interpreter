@@ -123,9 +123,6 @@ class Scanner:
         return c
 
 
-had_error = False
-
-
 def main() -> None:
     if len(sys.argv) > 2:
         print("Usage: plox [script]")
@@ -136,22 +133,29 @@ def main() -> None:
         run_prompt()
 
 
+class ErrorReporter:
+    had_error: bool
+
+    @classmethod
+    def report_error(cls, line: int, where: str, message: str) -> None:
+        print(f"[line {line}] Error{where}: {message}")
+        ErrorReporter.had_error = True
+
+
 def run_file(path: str) -> None:
-    global had_error
     with open(path, "r") as file:
         content = file.read()
         run(content)
-        if had_error:
+        if ErrorReporter.had_error:
             sys.exit(65)
 
 
 def run_prompt() -> None:
-    global had_error
     while True:
         try:
             line = input("> ")
             run(line)
-            had_error = False
+            ErrorReporter.had_error = False
         except EOFError:
             break
 
@@ -167,9 +171,7 @@ def error(line: int, message: str) -> None:
 
 
 def report(line: int, where: str, message: str) -> None:
-    global had_error
-    print(f"[line {line}] Error{where}: {message}")
-    had_error = True
+    ErrorReporter.report_error(line, where, message)
 
 
 if __name__ == "__main__":

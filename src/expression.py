@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Protocol, TypeVar
 
-from plox import Token
+from scanner import Token
 
 R = TypeVar("R", covariant=True)
 

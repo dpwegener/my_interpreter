@@ -14,7 +14,7 @@ from expression import (
     Variable,
     Visitor,
 )
-from plox import Token, TokenType
+from scanner import Token, TokenType
 
 
 class AstPrinter(Visitor[str]):

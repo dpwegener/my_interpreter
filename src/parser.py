@@ -5,9 +5,9 @@ from scanner import Token, TokenType
 
 
 class Parser:
-    tokens: list[Token]
-    current: int
-    reporter: Callable[[int, str, str], None]
+    __tokens: list[Token]
+    __current: int
+    __reporter: Callable[[int, str, str], None]
 
     def parse(self) -> Expr | None:
         try:
@@ -16,9 +16,9 @@ class Parser:
             return None
 
     def __init__(self, tokens: list[Token], reporter: Callable[[int, str, str], None]) -> None:
-        self.tokens = tokens
-        self.current = 0
-        Parser.reporter = reporter
+        self.__tokens = tokens
+        self.__current = 0
+        Parser.__reporter = reporter
 
     def __expression(self) -> Expr:
         return self.__equality()
@@ -27,7 +27,7 @@ class Parser:
         expr = self.__comparison()
 
         while self.__match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
-            operator = self.previous()
+            operator = self.__previous()
             right = self.__comparison()
             expr = Binary(expr, operator, right)
         return expr
@@ -35,32 +35,32 @@ class Parser:
     def __match(self, *types: TokenType) -> bool:
         for type in types:
             if self.__check(type):
-                self.advance()
+                self.__advance()
                 return True
         return False
 
     def __check(self, type: TokenType) -> bool:
-        return False if self.is_at_end() else self.peek().type == type
+        return False if self.__is_at_end() else self.__peek().type == type
 
-    def advance(self) -> Token:
-        if not self.is_at_end():
-            self.current += 1
-        return self.previous()
+    def __advance(self) -> Token:
+        if not self.__is_at_end():
+            self.__current += 1
+        return self.__previous()
 
-    def is_at_end(self) -> bool:
-        return self.peek().type == TokenType.EOF
+    def __is_at_end(self) -> bool:
+        return self.__peek().type == TokenType.EOF
 
-    def peek(self) -> Token:
-        return self.tokens[self.current]
+    def __peek(self) -> Token:
+        return self.__tokens[self.__current]
 
-    def previous(self) -> Token:
-        return self.tokens[self.current - 1]
+    def __previous(self) -> Token:
+        return self.__tokens[self.__current - 1]
 
     def __comparison(self) -> Expr:
         expr = self.__term()
 
         while self.__match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL):
-            operator = self.previous()
+            operator = self.__previous()
             right = self.__term()
             expr = Binary(expr, operator, right)
         return expr
@@ -69,7 +69,7 @@ class Parser:
         expr = self.__factor()
 
         while self.__match(TokenType.MINUS, TokenType.PLUS):
-            operator = self.previous()
+            operator = self.__previous()
             right = self.__term()
             expr = Binary(expr, operator, right)
 
@@ -79,7 +79,7 @@ class Parser:
         expr = self.__unary()
 
         while self.__match(TokenType.SLASH, TokenType.STAR):
-            operator = self.previous()
+            operator = self.__previous()
             right = self.__unary()
             expr = Binary(expr, operator, right)
 
@@ -87,7 +87,7 @@ class Parser:
 
     def __unary(self) -> Expr:
         if self.__match(TokenType.BANG, TokenType.MINUS):
-            operator = self.previous()
+            operator = self.__previous()
             right = self.__unary()
             return Unary(operator, right)
 
@@ -101,30 +101,30 @@ class Parser:
         if self.__match(TokenType.NIL):
             return Literal(None)
         if self.__match(TokenType.NUMBER, TokenType.STRING):
-            return Literal(self.previous().literal)
+            return Literal(self.__previous().literal)
         if self.__match(TokenType.LEFT_PAREN):
             expr = self.__expression()
             self.__consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
-        raise self.__error(self.peek(), "Unexpected token.")
+        raise self.__error(self.__peek(), "Unexpected token.")
 
     def __consume(self, type: TokenType, message: str) -> Token:
         if self.__check(type):
-            return self.advance()
-        raise self.__error(self.peek(), message)
+            return self.__advance()
+        raise self.__error(self.__peek(), message)
 
     def __error(self, token: Token, message: str) -> Exception:
         Parser.error(token, message)
         return Exception()
 
     def __synchronize(self) -> None:
-        self.advance()
+        self.__advance()
 
-        while not self.is_at_end():
-            if self.previous().type == TokenType.SEMICOLON:
+        while not self.__is_at_end():
+            if self.__previous().type == TokenType.SEMICOLON:
                 return
 
-            match self.peek().type:
+            match self.__peek().type:
                 case (
                     TokenType.CLASS
                     | TokenType.FUN
@@ -136,11 +136,11 @@ class Parser:
                     | TokenType.RETURN
                 ):
                     return
-            self.advance()
+            self.__advance()
 
     @classmethod
     def error(cls, token: Token, message: str) -> None:
         if token.type == TokenType.EOF:
-            Parser.reporter(token.line, " at end", message)
+            Parser.__reporter(token.line, " at end", message)
         else:
-            Parser.reporter(token.line, f" at '{token.lexeme}'", message)
+            Parser.__reporter(token.line, f" at '{token.lexeme}'", message)

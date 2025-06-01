@@ -41,6 +41,7 @@
 					},
 					"editor.defaultFormatter": "charliermarsh.ruff"
 				},
+				"python.analysis.autoImportCompletions": true,
 				"python.analysis.extraPaths": [
 					"${workspaceFolder}/src"
 				],

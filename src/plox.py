@@ -47,7 +47,7 @@ def run_prompt() -> None:
 
 
 def run(source: str) -> None:
-    tokens = list(Scanner(source, error).scan_tokens())
+    tokens = Scanner(source, error).scan_tokens()
 
     parser = Parser(tokens, report)
     expression = parser.parse()

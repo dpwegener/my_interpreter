@@ -10,6 +10,8 @@ class TestScanner:
 
     @pytest.fixture
     def setup_reporter(self) -> Callable[[int, str], None]:
+        self.reported_errors = []
+
         def capture_error(line: int, message: str) -> None:
             self.reported_errors.append((line, message))
 
@@ -18,7 +20,7 @@ class TestScanner:
     def test_scan_tokens_simple_add(self, setup_reporter: Callable[[int, str], None]) -> None:
         source = "3 + 4"
         out = Scanner(source, setup_reporter)
-        tokens = list(out.scan_tokens())
+        tokens = out.scan_tokens()
         expected_values = [
             (TokenType.NUMBER, 3.0),
             (TokenType.PLUS, None),
@@ -34,7 +36,7 @@ class TestScanner:
     def test_scan_tokens_punctuation(self, setup_reporter: Callable[[int, str], None]) -> None:
         source = "({,.;})"
         out = Scanner(source, setup_reporter)
-        tokens = list(out.scan_tokens())
+        tokens = out.scan_tokens()
         expected_types = [
             TokenType.LEFT_PAREN,
             TokenType.LEFT_BRACE,
@@ -53,9 +55,40 @@ class TestScanner:
     def test_unexpected_character(self, setup_reporter: Callable[[int, str], None]) -> None:
         source = "[]"
         out = Scanner(source, setup_reporter)
-        tokens = list(out.scan_tokens())
+        tokens = out.scan_tokens()
         assert len(tokens) == 1
         assert tokens[0].type == TokenType.EOF
         assert len(self.reported_errors) == 2
         assert self.reported_errors[0][1] == "Unexpected character."
         assert self.reported_errors[1][1] == "Unexpected character."
+
+    def test_math_operators(self, setup_reporter: Callable[[int, str], None]) -> None:
+        source = "+-*/"
+        out = Scanner(source, setup_reporter)
+        tokens = out.scan_tokens()
+        expected_types = [TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, TokenType.EOF]
+
+        for expected, actual in zip(expected_types, tokens, strict=True):
+            assert expected == actual.type
+
+        assert len(self.reported_errors) == 0
+
+    def test_comparison_operators(self, setup_reporter: Callable[[int, str], None]) -> None:
+        source = "!!====<<=>>="
+        out = Scanner(source, setup_reporter)
+        tokens = out.scan_tokens()
+        expected_types = [
+            TokenType.BANG,
+            TokenType.BANG_EQUAL,
+            TokenType.EQUAL_EQUAL,
+            TokenType.EQUAL,
+            TokenType.LESS,
+            TokenType.LESS_EQUAL,
+            TokenType.GREATER,
+            TokenType.GREATER_EQUAL,
+            TokenType.EOF,
+        ]
+
+        for expected, actual in zip(expected_types, tokens, strict=True):
+            assert expected == actual.type
+            assert len(self.reported_errors) == 0

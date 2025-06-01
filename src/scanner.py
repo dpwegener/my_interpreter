@@ -1,6 +1,6 @@
 from enum import IntEnum
 from types import MappingProxyType
-from typing import Callable, Iterable
+from typing import Callable
 
 
 class TokenType(IntEnum):
@@ -91,7 +91,7 @@ class Scanner:
         self.line = 1
         self.tokens = []
 
-    def scan_tokens(self) -> Iterable[Token]:
+    def scan_tokens(self) -> list[Token]:
         while not self.__is_at_end():
             self.start = self.current
             self.__scan_token()
